@@ -2,6 +2,8 @@ from typing import Dict
 import tkinter as tk
 import math
 
+from PIL import Image, ImageTk
+
 from modules import StandardDeck
 from modules import PokerTable
 from modules import HandEvaluator
@@ -136,33 +138,67 @@ class TableWindow(tk.Toplevel):
     def setup_window(self):
         self.title(f'{self.table.tournament.name} - Table {self.table.id}')
 
-        self.minsize(700, 700)
-        self.maxsize(700, 700)
+        self.minsize(1200, 800)
+        self.maxsize(1200, 1200)
 
-        self.canvas = tk.Canvas(self, height=800, width=800)
-        self.canvas.pack()
-
-        self.main_frame = tk.Frame(self, bg='#000')
+        self.main_frame = tk.Frame(self, bg='#2A363B')
         self.main_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+        self.setup_canvas()
+        # self.table_background()
+        # self.place_cards()
 
-        self.place_seats()
+    def setup_canvas(self):
+        self.canvas = tk.Canvas(self.main_frame)
+        self.background_image = ImageTk.PhotoImage(file='pyker_bg.png')
+        self.canvas.create_image(600, 400, image=self.background_image)
+        self.canvas.pack(fill=tk.BOTH, expand=1)
+        self.place_players()
+
+    def table_background(self):
+        background_image = Image.open('pyker_bg.png')
+        background_image = ImageTk.PhotoImage(background_image)
+        background_image_label = tk.Label(self.canvas, image=background_image, bg='#2A363B')
+        background_image_label.image = background_image
+        background_image_label.place(relx=0, rely=0, relheight=1, relwidth=1)
+
+        # canvas.create_arc(30, 200, 90, 100, start=0,
+        #     extent=210, outline="#faceab", fill="#99B898", width=2)
+        # points = [150, 100, 200, 120, 240, 180, 210,
+        #     200, 150, 150, 100, 200]
+        # canvas.create_polygon(points, outline='#faceab',
+        #     fill='#99B898', width=2)
+
+    def place_players(self):
+        card1_coordinates = [(580,550),(365,530),(235,390),(305,225),(490,185),(675,185),(860,225),(930,390),(795,530)]
+        card2_coordinates = [(coordinates[0]+35, coordinates[1]+20) for coordinates in card1_coordinates]
+        label_coordinates = [(coordinates[0]-55, coordinates[1]+40, coordinates[0]+95, coordinates[1]+80) for coordinates in card1_coordinates]
+
+        self.cardback_image = ImageTk.PhotoImage(file='cardback.png')
+        for i, seat in enumerate(self.table.seats):
+            self.canvas.create_image(*card1_coordinates[i], image=self.cardback_image)
+            self.canvas.create_image(*card2_coordinates[i], image=self.cardback_image)
+            round_rectangle(self.canvas, *label_coordinates[i], r=10, fill="#FFFFFF")
+        self.canvas.update()
 
     def place_seats(self):
         origin_rel = 0.5
         radius = 0.3
         points = len(self.table.seats)
         pi = math.pi
-
         ang = 0 % 360
+
         for i, seat in enumerate(self.table.seats):
             print(i*40)
-            seat_frame = tk.Frame(self.main_frame, bg='#efefef')
+            seat_frame = tk.Frame(self.main_frame, bg='#FFF')
             rel_x = math.cos(i*40) * radius + origin_rel
             rel_y = math.sin(i*40) * radius + origin_rel
             print(rel_x, rel_y)
             seat_frame.place(relx=rel_x, rely=rel_y,
                              relheight=0.1, relwidth=0.1)
 
+def round_rectangle(canvas, x1, y1, x2, y2, r=25, **kwargs):    
+    points = (x1+r, y1, x1+r, y1, x2-r, y1, x2-r, y1, x2, y1, x2, y1+r, x2, y1+r, x2, y2-r, x2, y2-r, x2, y2, x2-r, y2, x2-r, y2, x1+r, y2, x1+r, y2, x1, y2, x1, y2-r, x1, y2-r, x1, y1+r, x1, y1+r, x1, y1)
+    return canvas.create_polygon(points, **kwargs, smooth=True)
 
 class GameWindow:
     def __init__(self, master, game):
@@ -171,13 +207,13 @@ class GameWindow:
         self.setup()
 
     def setup(self):
-        self.master.minsize(1000, 700)
-        self.master.maxsize(1000, 700)
+        self.master.minsize(1200, 800)
+        self.master.maxsize(1200, 800)
 
-        self.canvas = tk.Canvas(self.master, height=700, width=1000)
+        self.canvas = tk.Canvas(self.master, height=800, width=1200)
         self.canvas.pack()
 
-        self.main_frame = tk.Frame(self.master, bg='#d6d6d6')
+        self.main_frame = tk.Frame(self.master, bg='#2A363B')
         self.main_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
         self.tournament_option_menu()
@@ -202,7 +238,6 @@ class GameWindow:
         drop = tk.OptionMenu(self.main_frame, drop_value, *
                              tournament_options, command=self.selected_tournament)
         drop.pack()
-
 
 if __name__ == "__main__":
     game = Game(tournaments_dict=tournaments_dict, evaluator=HandEvaluator())
