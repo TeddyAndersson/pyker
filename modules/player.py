@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from .card_int import CardInt
 from .card_collection import CardCollection
 
@@ -7,6 +9,7 @@ from .helpers import argument_exception_message
 class Player(object):
 
     def __init__(self, name: str = None, cards: CardCollection = None, initial_stack: int = 0, active: bool = False, private: bool = True):
+        self.id = uuid4()
         self.name = name
         self.cards = cards
         self.balance = initial_stack
