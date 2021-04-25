@@ -210,7 +210,6 @@ class TableWindow(tk.Toplevel):
 
                 card_image = self.canvas.create_image(
                     *coordinates, image=image)
-                print(card_image)
                 self.seats[seat_key]['card_images'].append(card_image)
 
             rectangle_coordinates = (first_card_x_coordinate-55, first_card_y_coordinate + 40, first_card_x_coordinate + 95,
