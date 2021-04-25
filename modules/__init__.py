@@ -8,3 +8,4 @@ from .poker_hand_evaluator import HandEvaluator
 from .blinds import Blind
 from .blinds import BlindStructure, blind_structures_data_set
 from .tournament import Tournament, tournaments_data_set
+from .seats import Seat, SeatCollection
