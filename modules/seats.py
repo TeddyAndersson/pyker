@@ -1,9 +1,12 @@
+from uuid import uuid4
+
 from .player import Player
 from .helpers import argument_exception_message
 
 
 class Seat:
     def __init__(self, player: Player = None, index: int = None):
+        self.id = uuid4()
         self.player = player
         self.index = index
 
