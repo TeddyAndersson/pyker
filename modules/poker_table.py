@@ -90,6 +90,9 @@ class PokerTable(object):
             'seats', int, value)
         self._seats = SeatCollection(size=value)
 
+    def get_seat(self, seat_index):
+        return self.seats.get_seat(seat_index)
+
     @property
     def community_cards(self):
         return self._community_cards
@@ -145,16 +148,20 @@ class PokerTable(object):
         player = self.get_player(big_blind_index)
         return player
 
-    def add_player(self, player: Player = None, seat_number: int = None):
+    def add_player(self, player: Player = None, seat_index: int = None):
         if len(self.seats.available) == 0:
             raise Exception('All seats are currently occupied')
 
-        if seat_number == None:
+        player.set_balance(self.tournament.start_stack)
+
+        print(type(seat_index), seat_index)
+
+        if seat_index == None:
             seat = self.seats.get_first_available_seat()
             seat.player = player
 
-        elif self.seats.is_seat_available(seat_number):
-            self.seats[seat_number] = player
+        elif self.seats.is_seat_available(seat_index):
+            self.seats[seat_index].player = player
 
         else:
             raise Exception('The seat is already taken')
