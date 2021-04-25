@@ -24,6 +24,9 @@ class Player(object):
         if not self.private:
             self.cards.append(card)
 
+    def swap_card(self, card, index):
+        self.cards.replace(card, index)
+
     def set_balance(self, amount: int = None):
         assert isinstance(amount, int), argument_exception_message(
             'amount', int, amount)
