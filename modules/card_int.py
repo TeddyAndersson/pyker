@@ -102,11 +102,12 @@ class CardInt(int):
 
     @classmethod
     def get_suit_int_from_char(cls, suit_char):
-        return cls.CHAR_SUIT_TO_INT_SUIT[suit_char]
+
+        return cls.CHAR_SUIT_TO_INT_SUIT[suit_char.upper()]
 
     @classmethod
     def get_rank_int_from_char(cls, rank_char):
-        return cls.CHAR_RANK_TO_INT_RANK[rank_char]
+        return cls.CHAR_RANK_TO_INT_RANK[rank_char.upper()]
 
     @classmethod
     def get_bitrank_bit_int(cls, rank_int):
