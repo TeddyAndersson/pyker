@@ -69,7 +69,6 @@ class PokerTable:
             for player in self.players:
                 player_card = self.deck.draw(number_of_cards=1)
                 player.hand.add_card(player_card[0])
-                print(player)
 
     def show_flop(self):
         print("Show Flop")
