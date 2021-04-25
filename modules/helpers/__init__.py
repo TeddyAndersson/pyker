@@ -1,3 +1,5 @@
+from .canvas import create_rectangle_with_rounded_corners
+
 from .input import confirm_input
 from .input import select_action_input
 from .input import select_cards_input
