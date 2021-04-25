@@ -1,7 +1,7 @@
-from typing import Dict
 import tkinter as tk
 import math
 
+from typing import Dict
 from PIL import Image, ImageTk
 
 from modules import StandardDeck
@@ -15,6 +15,7 @@ from modules import BlindStructure, blind_structures_data_set
 from modules import Tournament, tournaments_data_set
 from modules import PokerTable, PokerTableConfig
 
+from modules.helpers import create_rectangle_with_rounded_corners
 from modules.helpers import shift
 from modules.helpers import select_action_input
 
@@ -78,6 +79,7 @@ class Game:
     def new_player(self, name, private):
         player = Player(name=name, cards=CardCollection(), private=private)
         self.players[player.id] = player
+        return self.players[player.id]
 
     def start(self, table_id):
         self.new_hand(table)
@@ -131,9 +133,43 @@ def pyker():
 class TableWindow(tk.Toplevel):
     def __init__(self, game, table):
         tk.Toplevel.__init__(self)
+        self.configure(bg='#2A363B')
+
         self.game = game
         self.table = table
+        self.main_frame = tk.Frame(self)
+        self.canvas = tk.Canvas(
+            self.main_frame, bg='#2A363B', bd=0, highlightthickness=0)
+        self.images = {}
+        self.seats = {}
+        self.set_images()
+        self.set_seats()
         self.setup_window()
+
+    def set_seats(self):
+        for i, seat in enumerate(self.table.seats):
+            self.seats[seat.id] = {
+                'card_images': [],
+                'variables': {
+                    'player_name_entry_value': tk.StringVar(''),
+                },
+                'elements': {
+
+                }
+            }
+
+    def set_images(self):
+        self.images['active_cardback_image'] = ImageTk.PhotoImage(
+            file='assets/images/cardback_red.png')
+
+        self.images['in_active_cardback_image'] = ImageTk.PhotoImage(
+            file='assets/images/cardback_grey.png')
+
+        self.images['cardback_overlay_image'] = ImageTk.PhotoImage(
+            file='assets/images/cardback_overlay.png')
+
+        self.images['table_background_image'] = ImageTk.PhotoImage(
+            file='assets/images/pyker_bg.png')
 
     def setup_window(self):
         self.title(f'{self.table.tournament.name} - Table {self.table.id}')
@@ -141,64 +177,99 @@ class TableWindow(tk.Toplevel):
         self.minsize(1200, 800)
         self.maxsize(1200, 1200)
 
-        self.main_frame = tk.Frame(self, bg='#2A363B')
+        self.render_main_frame()
+        self.render_canvas()
+        self.render_background()
+        self.render_nine_seats()
+
+    def render_main_frame(self):
         self.main_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.setup_canvas()
-        # self.table_background()
-        # self.place_cards()
 
-    def setup_canvas(self):
-        self.canvas = tk.Canvas(self.main_frame)
-        self.background_image = ImageTk.PhotoImage(file='pyker_bg.png')
-        self.canvas.create_image(600, 400, image=self.background_image)
+    def render_canvas(self):
         self.canvas.pack(fill=tk.BOTH, expand=1)
-        self.place_players()
 
-    def table_background(self):
-        background_image = Image.open('pyker_bg.png')
-        background_image = ImageTk.PhotoImage(background_image)
-        background_image_label = tk.Label(self.canvas, image=background_image, bg='#2A363B')
-        background_image_label.image = background_image
-        background_image_label.place(relx=0, rely=0, relheight=1, relwidth=1)
-
-        # canvas.create_arc(30, 200, 90, 100, start=0,
-        #     extent=210, outline="#faceab", fill="#99B898", width=2)
-        # points = [150, 100, 200, 120, 240, 180, 210,
-        #     200, 150, 150, 100, 200]
-        # canvas.create_polygon(points, outline='#faceab',
-        #     fill='#99B898', width=2)
-
-    def place_players(self):
-        card1_coordinates = [(580,550),(365,530),(235,390),(305,225),(490,185),(675,185),(860,225),(930,390),(795,530)]
-        card2_coordinates = [(coordinates[0]+35, coordinates[1]+20) for coordinates in card1_coordinates]
-        label_coordinates = [(coordinates[0]-55, coordinates[1]+40, coordinates[0]+95, coordinates[1]+80) for coordinates in card1_coordinates]
-
-        self.cardback_image = ImageTk.PhotoImage(file='cardback.png')
-        for i, seat in enumerate(self.table.seats):
-            self.canvas.create_image(*card1_coordinates[i], image=self.cardback_image)
-            self.canvas.create_image(*card2_coordinates[i], image=self.cardback_image)
-            round_rectangle(self.canvas, *label_coordinates[i], r=10, fill="#FFFFFF")
+    def render_background(self):
+        self.canvas.create_image(
+            600, 400, image=self.images['table_background_image'])
         self.canvas.update()
 
-    def place_seats(self):
-        origin_rel = 0.5
-        radius = 0.3
-        points = len(self.table.seats)
-        pi = math.pi
-        ang = 0 % 360
+    def render_nine_seats(self):
+        frist_card_coordinates_list = [(580, 550), (365, 530), (235, 390), (305, 225),
+                                       (490, 185), (675, 185), (860, 225), (930, 390), (795, 530)]
 
-        for i, seat in enumerate(self.table.seats):
-            print(i*40)
-            seat_frame = tk.Frame(self.main_frame, bg='#FFF')
-            rel_x = math.cos(i*40) * radius + origin_rel
-            rel_y = math.sin(i*40) * radius + origin_rel
-            print(rel_x, rel_y)
-            seat_frame.place(relx=rel_x, rely=rel_y,
-                             relheight=0.1, relwidth=0.1)
+        for i, seat_key in enumerate(self.seats.keys()):
+            first_card_coordinates = frist_card_coordinates_list[i]
+            first_card_x_coordinate, first_card_y_coordinate = first_card_coordinates
+            second_cards_coordinates = (
+                first_card_x_coordinate + 35, first_card_y_coordinate + 20)
 
-def round_rectangle(canvas, x1, y1, x2, y2, r=25, **kwargs):    
-    points = (x1+r, y1, x1+r, y1, x2-r, y1, x2-r, y1, x2, y1, x2, y1+r, x2, y1+r, x2, y2-r, x2, y2-r, x2, y2, x2-r, y2, x2-r, y2, x1+r, y2, x1+r, y2, x1, y2, x1, y2-r, x1, y2-r, x1, y1+r, x1, y1+r, x1, y1)
-    return canvas.create_polygon(points, **kwargs, smooth=True)
+            for coordinates in [first_card_coordinates, second_cards_coordinates]:
+                image = self.images['cardback_overlay_image']
+                if i == 0:
+                    image = self.images['active_cardback_image']
+
+                card_image = self.canvas.create_image(
+                    *coordinates, image=image)
+                print(card_image)
+                self.seats[seat_key]['card_images'].append(card_image)
+
+            rectangle_coordinates = (first_card_x_coordinate-55, first_card_y_coordinate + 40, first_card_x_coordinate + 95,
+                                     first_card_y_coordinate + 80)
+
+            create_rectangle_with_rounded_corners(
+                self.canvas, *rectangle_coordinates, radius=10, fill="#ECECEC")
+
+            text_coordinates = (first_card_x_coordinate + 15,
+                                first_card_y_coordinate + 60)
+
+            player_name_text = self.canvas.create_text(
+                text_coordinates[0], text_coordinates[1], anchor=tk.CENTER)
+            self.seats[seat_key]['elements']['player_name_text'] = player_name_text
+
+            self.canvas.update()
+
+            if not i == 0:
+                entry_coordinates = (first_card_x_coordinate,
+                                     first_card_y_coordinate + 60)
+                player_name_entry = tk.Entry(
+                    self.canvas, textvariable=self.seats[seat_key]['variables']['player_name_entry_value'], width=10, highlightbackground='#ECECEC')
+
+                self.seats[seat_key]['elements']['player_name_entry'] = player_name_entry
+
+                player_name_entry.bind(
+                    "<Return>", (lambda event, seat_key=seat_key, command=self.handle_player_name_entry: command(event, seat_key)))
+
+                player_name_entry.place(
+                    x=entry_coordinates[0], y=entry_coordinates[1], anchor=tk.CENTER)
+
+            else:
+                self.seats[seat_key]['variables']['player_name_entry_value'].set(
+                    'Hero')
+
+            self.canvas.itemconfig(
+                self.seats[seat_key]['elements']['player_name_text'], text=self.seats[seat_key]['variables']['player_name_entry_value'].get())
+
+    def handle_player_name_entry(self, event, seat_key):
+        player_name = self.seats[seat_key]['variables']['player_name_entry_value'].get(
+        )
+
+        if len(player_name) == 0:
+            pass
+
+        new_player = self.game.new_player(name=player_name, private=True)
+        self.seats[seat_key]['elements']['player_name_entry'].destroy()
+
+        self.canvas.itemconfig(
+            self.seats[seat_key]['elements']['player_name_text'], text=new_player.name)
+
+        self.master.after(
+            1, (lambda seat_key=seat_key, func=self.set_active_cardbacks: func(seat_key)))
+
+    def set_active_cardbacks(self, seat_key):
+        for card_image in self.seats[seat_key]['card_images']:
+            self.canvas.itemconfigure(
+                card_image, image=self.images['active_cardback_image'])
+
 
 class GameWindow:
     def __init__(self, master, game):
@@ -238,6 +309,7 @@ class GameWindow:
         drop = tk.OptionMenu(self.main_frame, drop_value, *
                              tournament_options, command=self.selected_tournament)
         drop.pack()
+
 
 if __name__ == "__main__":
     game = Game(tournaments_dict=tournaments_dict, evaluator=HandEvaluator())
