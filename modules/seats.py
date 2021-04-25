@@ -5,7 +5,7 @@ from .helpers import argument_exception_message
 class Seat:
     def __init__(self, player: Player = None, index: int = None):
         self.player = player
-        self.index = int
+        self.index = index
 
     @property
     def player(self):
@@ -27,10 +27,9 @@ class SeatCollection(list):
 
     def __init__(self, size: int = 9):
         super().__init__()
-        self._setup_available_seats(size)
+        self._setup_available_seats(size=size)
 
     def _setup_available_seats(self, size):
-        print(size)
         for i in range(size):
             self.append(Seat(index=i))
 
