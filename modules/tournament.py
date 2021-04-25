@@ -27,6 +27,4 @@ tournaments_data_set = {
         'start_stack': 3000,
         'blind_structure_type': 'normal'
     }
-
-
 }
